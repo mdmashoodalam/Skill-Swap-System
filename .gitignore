@@ -1,0 +1,15 @@
+# Environment files contain credentials and deployment-specific settings.
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Generated dependencies, builds, and local data.
+backend/target/
+backend/uploads/
+frontend/node_modules/
+frontend/dist/
+.venv/
+.idea/
+.metadata/

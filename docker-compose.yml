@@ -1,0 +1,82 @@
+services:
+  database:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: skill_swap
+      MYSQL_USER: skillswap
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:?Set DB_ROOT_PASSWORD in .env}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  database-backup:
+    build: ./ops/mysql-backup
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_HOST: database
+      DB_NAME: skill_swap
+      DB_USER: skillswap
+      MYSQL_PWD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      BACKUP_INTERVAL_SECONDS: ${BACKUP_INTERVAL_SECONDS:-86400}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-14}
+    volumes:
+      - database-backups:/backups
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://database:3306/skill_swap?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      DB_USERNAME: skillswap
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET to a random value of at least 32 bytes}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@skillswap.local}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      CORS_ALLOWED_ORIGINS: ${APP_ORIGIN:-http://localhost:3000}
+      FRONTEND_URL: ${APP_ORIGIN:-http://localhost:3000}
+      UPLOAD_DIR: /app/uploads
+      JPA_DDL_AUTO: ${JPA_DDL_AUTO:-update}
+      TRUST_FORWARDED_HEADER: "true"
+      MAIL_LOG_LINKS: ${MAIL_LOG_LINKS:-true}
+      MAIL_HOST: ${MAIL_HOST:-}
+      MAIL_PORT: ${MAIL_PORT:-587}
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH:-true}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS:-true}
+    volumes:
+      - uploads:/app/uploads
+    expose:
+      - "8080"
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "3000:80"
+
+volumes:
+  mysql-data:
+  database-backups:
+  uploads:
