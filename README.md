@@ -2,6 +2,36 @@
 
 A full-stack community platform for matching people with complementary skills, managing swap requests and learning sessions, chatting in real time, making voice/video calls, and exchanging reviews.
 
+## Screenshots
+
+### Sign in
+
+![Skill Swap sign-in page](<assets/login page.png>)
+
+### Dashboard
+
+![User dashboard](<assets/user dashboard.png>)
+
+### Skills
+
+![Skills page](assets/skills.png)
+
+### User profile
+
+![User profile](<assets/user profile.png>)
+
+### Learning goals
+
+![Learning goals](assets/Goal.png)
+
+### Notifications
+
+![Notifications](assets/notification.png)
+
+### Admin panel
+
+![Admin panel](<assets/admin pannel .png>)
+
 ## Included functionality
 
 - Explainable compatibility matching with search, score filters, block filtering, and favorite people

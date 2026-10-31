@@ -13,3 +13,6 @@ frontend/dist/
 .venv/
 .idea/
 .metadata/
+output/
+tmp/
+backend.log
